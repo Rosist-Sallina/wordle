@@ -1,12 +1,5 @@
 pub mod select{
-    use rand::Rng;
-
-    pub fn get_useable_word() -> String{
-        let mut rng = rand::thread_rng();
-        let index = rng.gen_range(0..FINAL.len());
-        FINAL[index].to_string()
-    }
-
+    
     pub const FINAL: &[&str] = &[
     "aback", "abase", "abate", "abbey", "abbot", "abhor", "abide", "abled", "abode", "abort",
     "about", "above", "abuse", "abyss", "acorn", "acrid", "actor", "acute", "adage", "adapt",
