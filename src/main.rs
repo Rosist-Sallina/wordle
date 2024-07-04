@@ -2,6 +2,13 @@ use console;
 use std::io::{self, BufRead, BufReader, Write};
 use std::collections::HashMap;
 use clap::{Arg , Command};
+use std::sync::Mutex;
+use lazy_static::lazy_static;
+use std::collections::HashSet;
+
+lazy_static! {
+    static ref GLOBAL_HASHMAP: Mutex<HashMap<String, i32>> = Mutex::new(HashMap::new());
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);
@@ -10,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_played = 0;
     let mut answer_used = Vec::new();
     let mut count_success_loop = 0;
-    let mut used_word_frequency = HashMap::new();
+    let mut used_word_frequency = GLOBAL_HASHMAP.lock().unwrap();
 
     if is_tty {
         let _ = tty();
@@ -63,6 +70,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .value_name("acceptable-set")
                 .help("acceptable set of words")
                 .action(clap::ArgAction::SetTrue))
+            .arg(Arg::new("state")
+                .short('s')
+                .value_name("state")
+                .help("make the result into a json")
+                .default_value("state.json")
+                .action(clap::ArgAction::SetTrue))
             .get_matches();
         
         let seed = matches.get_one::<u64>("seed").unwrap();
@@ -70,10 +83,49 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let _final_set = matches.get_one::<String>("final-set").unwrap();
         let _acceptable_set = matches.get_one::<String>("acceptable-set").unwrap();
 
+        let mut final_set = Vec::new();
+        let mut acceptable_set = Vec::new();
+        let mut temp1 = String::new();
+        let mut temp2 = String::new();
+
+        if matches.get_flag("final-set"){
+            final_set = read_lines_from_file(_final_set, &mut temp1).unwrap();
+        }
+        else{
+            final_set = select::FINAL.to_vec();
+        }
+
+        if matches.get_flag("acceptable-set"){
+            acceptable_set = read_lines_from_file(_acceptable_set, &mut temp2).unwrap();
+        }
+        else{
+            acceptable_set = select::ACCEPTABLE.to_vec();
+        }
+
+        if !is_subset(&final_set, &acceptable_set){
+            println!("INVALVD");
+            return Ok(());
+        }
+
         let mut _flag = true;
         match matches.get_one::<String>("write") {                   //Judge the mode 1.write with word 2.write without word(input word in terminal) 3.random mode
             Some(write_value) => {
                 answer = write_value.clone();
+                if matches.get_flag("acceptable-set"){                                      //Enter word valid check
+                    let mut temp = String::new();
+                    let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
+                    if !acceptable.contains(&write_value.as_str()){
+                        println!("INVALVD");
+                        return Ok(());
+                    }
+                }
+                else{
+                    let acceptable = select::ACCEPTABLE.to_vec();
+                    if !acceptable.contains(&write_value.as_str()){
+                        println!("INVALVD");
+                        return Ok(());
+                    }
+                }
                 success = judge(&write_value , matches.get_flag("difficult"));
                 _flag = false;
                 count_success_loop += success;
@@ -99,10 +151,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     let mut line = String::new();
                     io::stdin().read_line(&mut line)?;
+                    if matches.get_flag("acceptable-set"){                                      //Enter word valid check
+                        let mut temp = String::new();
+                        let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
+                        if !acceptable.contains(&line.as_str()){
+                            println!("INVALVD");
+                            return Ok(());
+                        }
+                    }
+                    else{
+                        let acceptable = select::ACCEPTABLE.to_vec();
+                        if !acceptable.contains(&line.as_str()){
+                            println!("INVALVD");
+                            return Ok(());
+                        }
+                    }
                     success = judge(&line , matches.get_flag("difficult"));
                     _flag = false;
                     w_mode = true;
                     answer = line;
+
                     success_judge(w_mode , success, answer.clone());
                     count_played += 1;
                     if success != 0{
@@ -164,6 +232,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     let mut line = String::new();
                     io::stdin().read_line(&mut line)?;
+                    if matches.get_flag("acceptable-set"){                                      //Enter word valid check
+                        let mut temp = String::new();
+                        let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
+                        if !acceptable.contains(&line.as_str()){
+                            println!("INVALVD");
+                            return Ok(());
+                        }
+                    }
+                    else{
+                        let acceptable = select::ACCEPTABLE.to_vec();
+                        if !acceptable.contains(&line.as_str()){
+                            println!("INVALVD");
+                            return Ok(());
+                        }
+                    }
                     success = judge(&line , matches.get_flag("difficult"));
                     _flag = false;
                     answer = line;
@@ -210,6 +293,9 @@ fn judge(str : &str , flag: bool) -> i32{                         //All judge fu
             println!("INVALVD");
             continue;
         }
+        
+        let mut used_word_frequency = GLOBAL_HASHMAP.lock().unwrap();
+        used_word_frequency.entry(input.clone()).or_insert(0);
 
         let mut map_used = HashMap::new();  //how many (char,num) char we have used
         let mut i = 0;
@@ -417,4 +503,10 @@ fn wordbox_valid_check(input : Vec<&str>) -> bool{   //check if input is valid
         vec.push(input[i]);
     }
     true
+}
+
+fn is_subset<T: Eq + std::hash::Hash>(vec1: &Vec<T>, vec2: &Vec<T>) -> bool {         //子集判断函数 ， 资料来源于blog
+    let set1: HashSet<_> = vec1.iter().collect();
+    let set2: HashSet<_> = vec2.iter().collect();
+    set1.is_subset(&set2)
 }
