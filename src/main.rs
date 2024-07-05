@@ -1,7 +1,7 @@
 use console;
 use std::io::{self, BufRead, BufReader, Write};
 use std::collections::HashMap;
-use clap::{Arg , Command};
+use clap::{Arg, Command};
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 use std::collections::HashSet;
@@ -17,86 +17,126 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_played = 0;
     let mut answer_used = Vec::new();
     let mut count_success_loop = 0;
-    let mut used_word_frequency = GLOBAL_HASHMAP.lock().unwrap();
+    let used_word_frequency = GLOBAL_HASHMAP.lock().unwrap();
 
-    if is_tty {
+    if !is_tty {
         let _ = tty();
     } else {
-        let mut success = 0;
+        // let mut success = 0;
         let mut w_mode = false;
         let mut answer = String::new();
         let matches = Command::new("wordle")
-            .version("0.1.0")
-            .about("a simple wordle game")
-            .arg(Arg::new("word")
-                .short('w')
-                .value_name("WORD")
-                .help("Sets the word to guess")
-                .action(clap::ArgAction::SetTrue))
-            .arg(Arg::new("random")
-                .short('r')
-                .value_name("random")
-                .help("random mode")
-                .action(clap::ArgAction::SetFalse))
-            .arg(Arg::new("difficult")
-                .short('d')
-                .value_name("difficult")
-                .help("start difficult mode")
-                .action(clap::ArgAction::SetFalse))
-            .arg(Arg::new("state")
-                .short('s')
-                .value_name("state")
-                .help("print the state of the game")
-                .action(clap::ArgAction::SetFalse))
-            .arg(Arg::new("day")
-                .short('d')
-                .value_name("day")
-                .help("how manys rounds you want to loop")
-                .action(clap::ArgAction::SetTrue)
-                .default_value("1"))
-            .arg(Arg::new("seed")
-                .short('s')
-                .value_name("seed")
-                .help("seed for random")
-                .action(clap::ArgAction::SetTrue)
-                .default_value("42"))
-            .arg(Arg::new("final-set")
-                .short('f')
-                .value_name("final-set")
-                .help("final set of words")
-                .action(clap::ArgAction::SetTrue))
-            .arg(Arg::new("acceptable-set")
-                .short('a')
-                .value_name("acceptable-set")
-                .help("acceptable set of words")
-                .action(clap::ArgAction::SetTrue))
-            .arg(Arg::new("state")
-                .short('s')
-                .value_name("state")
-                .help("make the result into a json")
-                .default_value("state.json")
-                .action(clap::ArgAction::SetTrue))
-            .get_matches();
+        .version("0.1.0")
+        .about("a simple wordle game")
+        .arg(Arg::new("word")
+            .short('w')
+            .value_name("WORD")
+            .help("Sets the word to guess")
+            .value_parser(clap::value_parser!(String)))
+        .arg(Arg::new("random")
+            .short('r')
+            .help("random mode")
+            .action(clap::ArgAction::SetTrue))
+        .arg(Arg::new("difficult")
+            .short('D')
+            .help("start difficult mode")
+            .action(clap::ArgAction::SetTrue))
+        .arg(Arg::new("stats")
+            .short('t')
+            .help("print the state of the game")
+            .action(clap::ArgAction::SetTrue))
+        .arg(Arg::new("day")
+            .short('d')
+            .value_name("DAY")
+            .help("how many rounds you want to loop")
+            .value_parser(clap::value_parser!(usize))
+            .default_value("1"))
+        .arg(Arg::new("seed")
+            .short('s')
+            .value_name("SEED")
+            .help("seed for random")
+            .value_parser(clap::value_parser!(i32))
+            .default_value("42"))
+        .arg(Arg::new("final-set")
+            .short('f')
+            .long("final-set")
+            .value_name("FINAL-SET")
+            .help("final set of words")
+            .value_parser(clap::value_parser!(String)))
+        .arg(Arg::new("acceptable-set")
+            .short('a')
+            .long("acceptable-set")
+            .value_name("ACCEPTABLE-SET")
+            .help("acceptable set of words")
+            .value_parser(clap::value_parser!(String)))
+        .arg(Arg::new("state")
+            .short('S')
+            .value_name("STATE")
+            .help("make the result into a json")
+            .value_parser(clap::value_parser!(String)))
+        .arg(Arg::new("config")
+            .short('c')
+            .value_name("CONFIG")
+            .help("config file")
+            .value_parser(clap::value_parser!(String)))
+        .get_matches();
         
-        let seed = matches.get_one::<u64>("seed").unwrap();
-        let day = matches.get_one::<usize>("day").unwrap();
-        let _final_set = matches.get_one::<String>("final-set").unwrap();
-        let _acceptable_set = matches.get_one::<String>("acceptable-set").unwrap();
-
+        let mut default_config = Config{
+            random : false,
+            difficult : false,
+            stats : false,
+            day : 1,
+            seed : 42,
+            final_set : "".to_string(),
+            acceptable_set : "".to_string(),
+            state : "".to_string(),
+            word : "".to_string(),
+        };
+        if let Some(config) = matches.get_one::<String>("config"){
+            default_config = json_to_config(config.to_string()).unwrap();
+        }
+        if let Some(seed) = matches.get_one::<i32>("seed"){
+            default_config.seed = *seed;
+        }
+        if let Some(day) = matches.get_one::<usize>("day"){
+            default_config.day = *day;
+        }
+        if matches.contains_id("difficult"){
+            default_config.difficult = true;
+        }
+        if matches.contains_id("random"){
+            default_config.random = true;
+        }
+        if matches.contains_id("stats"){
+            default_config.stats = true;
+        }
+        if let Some(final_set)= matches.get_one::<String>("final-set"){
+            default_config.final_set = final_set.clone();
+        }
+        if let Some(acceptable_set) = matches.get_one::<String>("acceptable-set"){
+            default_config.acceptable_set = acceptable_set.clone();
+        }
+        if let Some(state) = matches.get_one::<String>("state"){
+            default_config.state = state.clone();
+        }
+        if let Some(word) = matches.get_one::<String>("word"){
+            default_config.word = word.clone();
+        }
+        
         let mut final_set = Vec::new();
         let mut acceptable_set = Vec::new();
         let mut temp1 = String::new();
         let mut temp2 = String::new();
 
-        if matches.get_flag("final-set"){
-            final_set = read_lines_from_file(_final_set, &mut temp1).unwrap();
+        if matches.contains_id("final-set"){
+            final_set = read_lines_from_file(&default_config.final_set, &mut temp1).unwrap();
         }
         else{
             final_set = select::FINAL.to_vec();
         }
 
-        if matches.get_flag("acceptable-set"){
-            acceptable_set = read_lines_from_file(_acceptable_set, &mut temp2).unwrap();
+        if matches.contains_id("acceptable-set"){
+            acceptable_set = read_lines_from_file(&default_config.acceptable_set, &mut temp2).unwrap();
         }
         else{
             acceptable_set = select::ACCEPTABLE.to_vec();
@@ -108,103 +148,98 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let mut _flag = true;
-        match matches.get_one::<String>("write") {                   //Judge the mode 1.write with word 2.write without word(input word in terminal) 3.random mode
-            Some(write_value) => {
-                answer = write_value.clone();
-                if matches.get_flag("acceptable-set"){                                      //Enter word valid check
-                    let mut temp = String::new();
-                    let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
-                    if !acceptable.contains(&write_value.as_str()){
-                        println!("INVALVD");
-                        return Ok(());
-                    }
-                }
-                else{
-                    let acceptable = select::ACCEPTABLE.to_vec();
-                    if !acceptable.contains(&write_value.as_str()){
-                        println!("INVALVD");
-                        return Ok(());
-                    }
-                }
-                success = judge(&write_value , matches.get_flag("difficult"));
-                _flag = false;
-                count_success_loop += success;
-                count_played += 1;
-                if success != 0{
-                    count_success += 1;
-                }
-                success_judge(w_mode , success, answer);
-
-                if matches.get_flag("state"){
-                    print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
-                }
-            }
-            None => {
-                loop{
-                    if count_played != 0{                 //Check if player want another round
-                        let mut _flag = true;
-                        let mut line = String::new();
-                        io::stdin().read_line(&mut line)?;
-                        if line == "N"{
-                            break;
-                        }
-                    }
-                    let mut line = String::new();
-                    io::stdin().read_line(&mut line)?;
-                    if matches.get_flag("acceptable-set"){                                      //Enter word valid check
+        if matches.contains_id("word"){
+            match matches.get_one::<String>("word") {                   //Judge the mode 1.write with word 2.write without word(input word in terminal) 3.random mode
+                Some(write_value) => {
+                    answer = write_value.clone();
+                    if matches.contains_id("acceptable-set"){                                      //Enter word valid check
                         let mut temp = String::new();
-                        let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
-                        if !acceptable.contains(&line.as_str()){
+                        let acceptable = read_lines_from_file(&default_config.acceptable_set, &mut temp).unwrap();
+                        if !acceptable.contains(&write_value.as_str()){
                             println!("INVALVD");
                             return Ok(());
                         }
                     }
                     else{
                         let acceptable = select::ACCEPTABLE.to_vec();
-                        if !acceptable.contains(&line.as_str()){
+                        if !acceptable.contains(&write_value.as_str()){
                             println!("INVALVD");
                             return Ok(());
                         }
                     }
-                    success = judge(&line , matches.get_flag("difficult"));
+                    let (success, _gusses) = judge(&write_value , default_config.difficult);
                     _flag = false;
-                    w_mode = true;
-                    answer = line;
-
-                    success_judge(w_mode , success, answer.clone());
+                    count_success_loop += success;
                     count_played += 1;
                     if success != 0{
                         count_success += 1;
-                        count_success_loop += success;
                     }
+                    success_judge(w_mode , success, answer);
 
-                    if matches.get_flag("state"){
+                    if matches.contains_id("state"){
                         print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                    }
+                }
+                None => {
+                    loop{
+                        if count_played != 0{                 //Check if player want another round
+                            let mut _flag = true;
+                            let mut line = String::new();
+                            io::stdin().read_line(&mut line)?;
+                            if line == "N"{
+                                break;
+                            }
+                        }
+                        let mut line = String::new();
+                        io::stdin().read_line(&mut line)?;
+                        if matches.contains_id("acceptable-set"){                                      //Enter word valid check
+                            let mut temp = String::new();
+                            let acceptable = read_lines_from_file(&default_config.acceptable_set, &mut temp).unwrap();
+                            if !acceptable.contains(&line.as_str()){
+                                println!("INVALVD");
+                                return Ok(());
+                            }
+                        }
+                        else{
+                            let acceptable = select::ACCEPTABLE.to_vec();
+                            if !acceptable.contains(&line.as_str()){
+                                println!("INVALVD");
+                                return Ok(());
+                            }
+                        }
+                        let (success , _guess) = judge(&line , default_config.difficult);
+                        _flag = false;
+                        w_mode = true;
+                        answer = line;
+
+                        success_judge(w_mode , success, answer.clone());
+                        count_played += 1;
+                        if success != 0{
+                            count_success += 1;
+                            count_success_loop += success;
+                        }
+
+                        if matches.contains_id("state"){
+                            print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                        }
                     }
                 }
             }
         }
-        if matches.get_flag("random") {
+        if default_config.random {
             loop{
                 let mut line = String::new();
-                if matches.get_flag("final-set"){
-                    line = get_useable_word_file(*day , *seed , _final_set);
+                if matches.contains_id("final-set"){
+                    line = get_useable_word_file(default_config.day , default_config.seed.try_into().unwrap(), &default_config.final_set.as_str());
                 }
                 else{
-                    line = get_useable_word_default(*day , *seed);
+                    line = get_useable_word_default(default_config.day , default_config.seed.try_into().unwrap());
                 }
                 if answer_used.contains(&line){                     //Check if the word has been used
                     continue;
                 }
-                if count_played != 0{                 //Check if player want another round
-                    let mut _flag = true;
-                    let mut line = String::new();
-                    io::stdin().read_line(&mut line)?;
-                    if line == "N"{
-                        break;
-                    }
-                }
-                success = judge(&line , matches.get_flag("difficult"));
+            
+                let (success , gusses) = judge(&line , default_config.difficult);
                 _flag = false;
                 answer = line;
                 success_judge(w_mode , success, answer.clone());
@@ -214,11 +249,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     count_success += 1;
                     count_success_loop += success;            
                     }
-                }
-
-                if matches.get_flag("state"){
+                if matches.contains_id("stats"){
                     print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
                 }
+                if matches.contains_id("state"){
+                    let _ = state_to_json(matches.get_one::<String>("state").unwrap().clone() , answer.clone() , gusses.clone());
+                }
+                    
+                if count_played != 0{                 //Check if player want another round
+                    let mut _flag = true;
+                    let mut line = String::new();
+                    io::stdin().read_line(&mut line)?;
+                    if line == "N"{
+                        break;
+                    }
+                }
+            }
         }
         if _flag{                                    //default mode
             loop{
@@ -232,9 +278,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     let mut line = String::new();
                     io::stdin().read_line(&mut line)?;
-                    if matches.get_flag("acceptable-set"){                                      //Enter word valid check
+                    if matches.contains_id("acceptable-set"){                                      //Enter word valid check
                         let mut temp = String::new();
-                        let acceptable = read_lines_from_file(_acceptable_set, &mut temp).unwrap();
+                        let acceptable = read_lines_from_file(&default_config.acceptable_set, &mut temp).unwrap();
                         if !acceptable.contains(&line.as_str()){
                             println!("INVALVD");
                             return Ok(());
@@ -247,7 +293,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             return Ok(());
                         }
                     }
-                    success = judge(&line , matches.get_flag("difficult"));
+                    let (success , _gusses) = judge(&line , default_config.difficult);
                     _flag = false;
                     answer = line;
                     success_judge(w_mode , success, answer);
@@ -257,7 +303,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         count_success_loop += success;
                     }
 
-                    if matches.get_flag("state"){
+                    if matches.contains_id("state"){
                         print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
                     }
             }
@@ -271,9 +317,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod builtin_words;
 pub use builtin_words::select;     //Get built_in words
 
-fn judge(str : &str , flag: bool) -> i32{                         //All judge function
+fn judge(str : &str , flag: bool) -> (i32 , Vec<String>){                         //All judge function
     let mut result = String::new();
     let mut default_map = HashMap::new();
+    let mut gusses = Vec::new();
 
     for c in str.chars() {
         let count = default_map.entry(c).or_insert(0);
@@ -296,6 +343,7 @@ fn judge(str : &str , flag: bool) -> i32{                         //All judge fu
         
         let mut used_word_frequency = GLOBAL_HASHMAP.lock().unwrap();
         used_word_frequency.entry(input.clone()).or_insert(0);
+        gusses.push(input.clone());
 
         let mut map_used = HashMap::new();  //how many (char,num) char we have used
         let mut i = 0;
@@ -346,20 +394,21 @@ fn judge(str : &str , flag: bool) -> i32{                         //All judge fu
             }
         }
         println!("{}", result);
-
+        
+        let first_five = &result[0..5];
         let mut flag = false;
-        for c in result.chars() {
+        for c in first_five.chars() {
             if c != 'G' {
                 flag = true;
                 break;
             }
         }
         _i += 1;
-        if flag{
-            return _i;
+        if !flag{
+            return (_i , gusses);
         }
     }
-    return 0;
+    return (0 , gusses);
 }
 
 fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
@@ -446,7 +495,7 @@ fn hash_map_sort(used_word_frequency : HashMap<String , i32>) -> Vec<(String , i
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 use rand::seq::SliceRandom;
-use std::fs::File;
+use std::fs::{self, File};
 use std::path::Path;
 
 fn get_useable_word_default(day : usize, seed : u64) -> String{                    //Get the word from the default set
@@ -458,9 +507,8 @@ fn get_useable_word_default(day : usize, seed : u64) -> String{                 
 
 fn get_useable_word_file(day:usize, seed:u64,final_set:&str) -> String{  //Get the word from the file
     let mut buffer = String::new();
-    let mut vec = Vec::new();
     let mut rng = StdRng::seed_from_u64(seed);
-    vec = read_lines_from_file(final_set, &mut buffer).unwrap();
+    let mut vec = read_lines_from_file(final_set, &mut buffer).unwrap();
     vec.shuffle(&mut rng);
     vec[day-1].to_string()
 }
@@ -509,4 +557,51 @@ fn is_subset<T: Eq + std::hash::Hash>(vec1: &Vec<T>, vec2: &Vec<T>) -> bool {   
     let set1: HashSet<_> = vec1.iter().collect();
     let set2: HashSet<_> = vec2.iter().collect();
     set1.is_subset(&set2)
+}
+
+#[derive(Serialize, Deserialize)]
+struct Game{
+    name : String,
+    gusses : Vec<String>,
+}
+#[derive(Serialize, Deserialize)]
+struct State{
+    total_rounds:i32 , 
+    games : Vec<Game>,
+}
+
+use serde::{Serialize, Deserialize};
+fn state_to_json(path:String , answer:String , gusses:Vec<String>) -> Result<(), Box<dyn std::error::Error>>{
+    let data = fs::read_to_string(&path)?;
+    let mut json : State = serde_json::from_str(&data)?;
+    let temp_game = Game{
+        name : answer,
+        gusses : gusses,
+    };
+    json.games.push(temp_game);
+    json.total_rounds += 1;
+    let updated_data = serde_json::to_string_pretty(&json)?;
+    let mut file = File::create(&path)?;
+    file.write_all(updated_data.as_bytes())?;
+
+    Ok(())
+}
+
+fn json_to_config(path:String) -> Result<Config, Box<dyn std::error::Error>>{
+    let data = fs::read_to_string(&path)?;
+    let json : Config = serde_json::from_str(&data)?;
+    Ok(json)
+}
+
+#[derive(Serialize, Deserialize)]
+struct Config{
+    random : bool ,
+    difficult : bool ,
+    stats : bool , 
+    day : usize,
+    seed : i32,
+    final_set : String ,
+    acceptable_set : String ,
+    state : String ,
+    word : String,
 }
