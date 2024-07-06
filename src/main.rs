@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_success_loop = 0;
     let mut used_word_frequency = HashMap::new();
 
-    if is_tty {
+    if !is_tty {
         let _ = tty();
     } else {
         // let mut success = 0;
@@ -618,15 +618,19 @@ fn state_to_json(path:String , answer:String , guesses:Vec<String>) -> Result<()
         total_rounds : Some(0),
         games : Some(Vec::new()),
     };
-    if data != "" {
+    if !data.is_empty() {
         json = serde_json::from_str(&data).unwrap();
     }
     let temp_game = Game{
         answer : Some(answer.to_uppercase()),
         guesses : Some(guesses),
     };
-    json.games.as_mut().unwrap().push(temp_game);
-    json.total_rounds = Some(json.total_rounds.unwrap() + 1);
+    if let Some(games) = json.games.as_mut(){
+        games.push(temp_game);
+    }else{
+        json.games = Some(vec![temp_game]);
+    }
+    json.total_rounds = Some(json.total_rounds.unwrap_or(0) + 1);
     let updated_data = serde_json::to_string_pretty(&json)?;
     let mut file = File::create(&path)?;
     file.write_all(updated_data.as_bytes())?;
