@@ -83,7 +83,6 @@ impl TestCase {
         };
         // command options for user program
         let mut command = command
-            .arg("--")
             .args(&self.arguments)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -101,6 +100,8 @@ impl TestCase {
 
     pub fn run_and_compare_result(&self) {
         let mut command = self.execute_program_and_feed_input();
+        println!("{:?}", command.id());
+        println!("{:?}", command);
         // read stdout from user program
         let mut output = Vec::new();
         command
