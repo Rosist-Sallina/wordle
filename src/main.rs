@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_success_loop = 0;
     let mut used_word_frequency = HashMap::new();
 
-    if !is_tty {
+    if is_tty {
         let _ = tty();
     } else {
         // let mut success = 0;
