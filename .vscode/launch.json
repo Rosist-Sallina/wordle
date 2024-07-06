@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["-t" , "-r" , "-s" , "20220817" , "-d" ,"817" , "-S" , "state.json"],
+            "args": ["-t" , "-r" , "-s" , "12345678" , "-d" ,"1234" , "-S" , "state.json"],
             "cwd": "${workspaceFolder}"
         },
         {
