@@ -484,16 +484,12 @@ fn tty() -> Result<(), Box<dyn std::error::Error>>{
     Ok(())
 }
 
-fn success_judge(flag:bool , success : i32 , answer : String){
+fn success_judge(_flag:bool , success : i32 , answer : String){
     if success != 0{
         println!("CORRECT {}" , success);
     }
     else {
         println!("FAILED {}" , answer.to_uppercase())
-    }
-
-    if flag{
-        println!("Another round? (y/n)");
     }
 }
 
