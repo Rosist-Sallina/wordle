@@ -2,7 +2,7 @@ use console;
 use core::panic;
 use std::io::{self, BufRead, BufReader, Write};
 use std::collections::HashMap;
-use clap::{arg, command, value_parser, ArgAction};
+use clap::{Arg, command, value_parser , ArgAction};
 use std::collections::HashSet;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);
@@ -13,78 +13,83 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_success_loop = 0;
     let mut used_word_frequency = HashMap::new();
 
-    if is_tty {
+    if !is_tty {
         let _ = tty();
     } else {
         // let mut success = 0;
         let mut w_mode = false;
         let mut answer = String::new();
         let matches = command!() // requires `cargo` feature
-        .arg(
-            arg!(
-                -w --word <WORD> "Sets the word to guess"
-            )
+        .version("0.1.0")
+        .about("a simple wordle game")
+        .arg(Arg::new("word")
+            .short('w')
+            .long("word")
+            .value_name("WORD")
+            .help("Sets the word to guess")
             .required(false)
-            .value_parser(value_parser!(String)),
-        )
-        .arg(
-            arg!(
-                -r --random "Random mode"
-            )
+            .num_args(0..=1)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("random")
+            .short('r')
+            .long("random")
+            .help("random mode")
             .required(false)
-            .action(ArgAction::SetTrue),
-        )
-        .arg(
-            arg!(
-                -D --difficult "Start difficult mode"
-            )
+            .action(ArgAction::SetTrue))
+        .arg(Arg::new("difficult")
+            .short('D')
+            .long("difficult")
+            .help("start difficult mode")
             .required(false)
-            .action(ArgAction::SetTrue),
-        )
-        .arg(
-            arg!(
-                -t --stats "Print the state of the game"
-            )
+            .action(ArgAction::SetTrue))
+        .arg(Arg::new("stats")
+            .short('t')
+            .long("stats")
+            .help("print the state of the game")
+            .action(ArgAction::SetTrue)
+            .required(false))
+        .arg(Arg::new("day")
+            .short('d')
+            .long("day")
+            .value_name("DAY")
+            .help("how many rounds you want to loop")
             .required(false)
-            .action(ArgAction::SetTrue),
-        )
-        .arg(
-            arg!(
-                -d --day <DAY> "How many rounds you want to loop"
-            )
-            .value_parser(value_parser!(usize)),
-        )
-        .arg(
-            arg!(
-                -s --seed <SEED> "Seed for random"
-            )
-            .value_parser(value_parser!(i32)),
-        )
-        .arg(
-            arg!(
-                -f --final_set <FINAL_SET> "Final set of words"
-            )
-            .value_parser(value_parser!(String)),
-        )
-        .arg(
-            arg!(
-                -a --acceptable_set <ACCEPTABLE_SET> "Acceptable set of words"
-            )
-            .value_parser(value_parser!(String)),
-        )
-        .arg(
-            arg!(
-                -S --state <STATE> "Make the result into a JSON"
-            )
-            .value_parser(value_parser!(String)),
-        )
-        .arg(
-            arg!(
-                -c --config <CONFIG> "Config file"
-            )
+            .value_parser(value_parser!(usize)))
+        .arg(Arg::new("seed")
+            .short('s')
+            .long("seed")
+            .value_name("SEED")
+            .help("seed for random")
             .required(false)
-            .value_parser(value_parser!(String)),
-        )
+            .value_parser(value_parser!(i32)))
+        .arg(Arg::new("final-set")
+            .short('f')
+            .long("final-set")
+            .value_name("FINAL_SET")
+            .help("final set of words")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("acceptable-set")
+            .short('a')
+            .long("acceptable-set")
+            .value_name("ACCEPTABLE_SET")
+            .help("acceptable set of words")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("state")
+            .short('S')
+            .long("state")
+            .value_name("STATE")
+            .help("make the result into a json")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("config")
+            .short('c')
+            .long("config")
+            .value_name("CONFIG")
+            .help("config file")
+            .required(false)
+            .value_parser(value_parser!(String)))
         .get_matches();
         
         let mut default_config = Config{
@@ -116,10 +121,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if matches.get_flag("stats"){
             default_config.stats = Some(true);
         }
-        if let Some(final_set)= matches.get_one::<String>("final_set"){
+        if let Some(final_set)= matches.get_one::<String>("final-set"){
             default_config.final_set = Some(final_set.clone());
         }
-        if let Some(acceptable_set) = matches.get_one::<String>("acceptable_set"){
+        if let Some(acceptable_set) = matches.get_one::<String>("acceptable-set"){
             default_config.acceptable_set = Some(acceptable_set.clone());
         }
         if let Some(state) = matches.get_one::<String>("state"){
@@ -134,14 +139,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut temp1 = String::new();
         let mut temp2 = String::new();
 
-        if matches.contains_id("final_set"){
+        if matches.contains_id("final-set"){
             final_set = read_lines_from_file(default_config.final_set.clone().unwrap(), &mut temp1).unwrap();
         }
         else{
             final_set = select::FINAL.to_vec();
         }
 
-        if matches.contains_id("acceptable_set"){
+        if matches.contains_id("acceptable-set"){
             acceptable_set = read_lines_from_file(&default_config.acceptable_set.unwrap(), &mut temp2).unwrap();
         }
         else{
@@ -228,7 +233,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if default_config.random.unwrap() && _flag{
             loop{
                 let mut line = String::new();
-                if matches.contains_id("final_set"){
+                if matches.contains_id("final-set"){
                     line = get_useable_word_file(default_config.day.unwrap(), default_config.seed.unwrap().try_into().unwrap(), default_config.final_set.clone().unwrap().as_str());
                 }
                 else{
