@@ -508,10 +508,13 @@ fn print_state(count_success: i32, count_played: i32, count_success_loop: i32, u
 
     let mut vec = hash_map_sort(used_word_frequency);
     vec = vec.iter().take(5).cloned().collect();
+    let mut output = String::new();
     for (key, value) in vec {
-        print!("{} {} ", key.to_uppercase(), value);
+        let temp  = format!("{} {} ", key.to_uppercase(), value);
+        output.push_str(&temp);
     }
-    print!("\n");
+    output.pop();   
+    println!("{}", output);
     io::stdout().flush().unwrap();
 }
 
