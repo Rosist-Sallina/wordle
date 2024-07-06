@@ -22,7 +22,7 @@ struct Args {
     difficult: bool,
 
     /// Print the state of the game
-    #[arg(short, long)]
+    #[arg(short = 't', long)]
     stats: bool,
 
     /// How many rounds you want to loop
