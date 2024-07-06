@@ -152,10 +152,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         else{
             acceptable_set = select::ACCEPTABLE.to_vec();
         }
-
+        
+        let mut json = State{
+            total_rounds : Some(0),
+            games : Some(Vec::new()),
+        };
         if matches.contains_id("state"){
             let data = fs::read_to_string(&default_config.state.unwrap()).unwrap();
-            let _json : State = serde_json::from_str(&data).unwrap();
+            json = serde_json::from_str(&data).unwrap();
         }
 
         if !is_subset(&final_set, &acceptable_set){
@@ -176,8 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Some(write_value) => {
                     answer = write_value.clone();
                     if !acceptable_set.contains(&answer.as_str()){
-                        println!("INVALID");
-                        return Ok(());
+                        panic!("INVALID");
                     }
                     let  (success, _gusses ,frequency) = judge(&answer , default_config.difficult.unwrap() , used_word_frequency.clone() , &acceptable_set);
                     used_word_frequency = frequency;
@@ -190,7 +193,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     success_judge(w_mode , success, answer);
 
                     if default_config.stats.unwrap(){
-                        print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                        print_state(count_success , count_played , count_success_loop , used_word_frequency.clone(), matches.contains_id("state") , json.clone());
                     }
                 }
                 None => {
@@ -207,8 +210,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         io::stdin().read_line(&mut line)?;
                         line.pop();
                         if !acceptable_set.contains(&line.as_str()){
-                            println!("INVALID");
-                            return Ok(());
+                            panic!("INVALID");
                         }
                         let (success , _guess ,frequency) = judge(&line , default_config.difficult.unwrap(), used_word_frequency.clone() , &acceptable_set);
                         used_word_frequency = frequency;
@@ -224,7 +226,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
 
                         if default_config.stats.unwrap(){
-                            print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                            print_state(count_success , count_played , count_success_loop , used_word_frequency.clone() , matches.contains_id("state") , json.clone());
                         }
                     }
                 }
@@ -255,7 +257,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     count_success_loop += success;            
                     }
                 if default_config.stats.unwrap(){
-                    print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                    print_state(count_success , count_played , count_success_loop , used_word_frequency.clone() , matches.contains_id("state") , json.clone());
                 }
                 if matches.contains_id("state"){
                     let _ = state_to_json(matches.get_one::<String>("state").unwrap().clone() , answer.clone() , gusses.clone());
@@ -265,7 +267,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let mut _flag = true;
                     let mut line = String::new();
                     io::stdin().read_line(&mut line)?;
-                    if line == "N\n" || line == "n\n"{
+                    if line == "N\n" || line == "n\n" || line == "N" || line == "n"{
                         break;
                     }
                 }
@@ -287,8 +289,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     io::stdin().read_line(&mut line)?;
                     line.pop();
                     if !acceptable_set.contains(&line.as_str()){
-                        println!("INVALID");
-                        return Ok(());
+                        panic!("INVALID");
                     }
                     let (success , _gusses ,frequency) = judge(&line , default_config.difficult.unwrap() , used_word_frequency.clone() , &acceptable_set);
                     used_word_frequency = frequency;
@@ -302,7 +303,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
 
                     if default_config.stats.unwrap(){
-                        print_state(count_success , count_played , count_success_loop , used_word_frequency.clone());
+                        print_state(count_success , count_played , count_success_loop , used_word_frequency.clone() , matches.contains_id("state") , json.clone());
                     }
             }
             }
@@ -498,7 +499,24 @@ fn success_judge(_flag:bool , success : i32 , answer : String){
     }
 }
 
-fn print_state(count_success: i32, count_played: i32, count_success_loop: i32, used_word_frequency: HashMap<String, i32>) {
+fn print_state(mut count_success: i32, mut count_played: i32, mut count_success_loop: i32, mut used_word_frequency: HashMap<String, i32> , flag : bool , json : State) {
+    
+    used_word_frequency = convert_keys_to_uppercase(used_word_frequency);
+    if flag {
+        if let Some(games) = json.games {
+            count_played += games.len() as i32;
+            for game in games {
+                if let Some(guesses) = game.guesses {
+                    count_success_loop += guesses.len() as i32;
+                    count_success += if game.answer.is_some() { 1 } else { 0 };
+                    for guess in guesses {
+                        let counter = used_word_frequency.entry(guess.clone()).or_insert(0);
+                        *counter += 1;
+                    }
+                }
+            }
+        }
+    }
     if count_success != 0 {
         let success_rate = count_success_loop as f64 / count_success as f64;
         println!("{} {} {:.2}", count_success, count_played - count_success, success_rate);
@@ -508,10 +526,13 @@ fn print_state(count_success: i32, count_played: i32, count_success_loop: i32, u
 
     let mut vec = hash_map_sort(used_word_frequency);
     vec = vec.iter().take(5).cloned().collect();
+    let mut output = String::new();
     for (key, value) in vec {
-        print!("{} {} ", key.to_uppercase(), value);
+        let temp  = format!("{} {} ", key.to_uppercase(), value);
+        output.push_str(&temp);
     }
-    print!("\n");
+    output.pop();   
+    println!("{}", output);
     io::stdout().flush().unwrap();
 }
 
@@ -597,12 +618,12 @@ fn is_subset<T: Eq + std::hash::Hash>(vec1: &Vec<T>, vec2: &Vec<T>) -> bool {   
     set1.is_subset(&set2)
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize , Clone)]
 struct Game{
     answer : Option<String>,
     guesses : Option<Vec<String>>,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize , Clone)]
 struct State{
     total_rounds:Option<i32> , 
     games : Option<Vec<Game>>,
@@ -615,15 +636,19 @@ fn state_to_json(path:String , answer:String , guesses:Vec<String>) -> Result<()
         total_rounds : Some(0),
         games : Some(Vec::new()),
     };
-    if data != "" {
+    if !data.is_empty() {
         json = serde_json::from_str(&data).unwrap();
     }
     let temp_game = Game{
         answer : Some(answer.to_uppercase()),
         guesses : Some(guesses),
     };
-    json.games.as_mut().unwrap().push(temp_game);
-    json.total_rounds = Some(json.total_rounds.unwrap() + 1);
+    if let Some(games) = json.games.as_mut(){
+        games.push(temp_game);
+    }else{
+        json.games = Some(vec![temp_game]);
+    }
+    json.total_rounds = Some(json.total_rounds.unwrap_or(0) + 1);
     let updated_data = serde_json::to_string_pretty(&json)?;
     let mut file = File::create(&path)?;
     file.write_all(updated_data.as_bytes())?;
@@ -662,3 +687,12 @@ fn fix_string_by_index(input : &str , index : usize , c : char) -> String{
     }
     result
 }
+fn convert_keys_to_uppercase(mut map: HashMap<String, i32>) -> HashMap<String, i32> {
+    let mut new_map = HashMap::new();
+    for (key, value) in map.drain() {
+        new_map.insert(key.to_uppercase(), value);
+    }
+    new_map
+}
+
+//test:cargo run -- -c tests/cases/08_01_config_file.config.json < tests/cases/08_01_config_file.in > tests/cases/08_01_config_file.out

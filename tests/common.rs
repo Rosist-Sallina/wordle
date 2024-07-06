@@ -83,7 +83,7 @@ impl TestCase {
         };
         // command options for user program
         let mut command = command
-            .arg("--")
+            //.arg("--")
             .args(&self.arguments)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
