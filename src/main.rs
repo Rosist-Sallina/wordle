@@ -25,13 +25,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .short('w')
             .value_name("WORD")
             .help("Sets the word to guess")
+            .num_args(0..=1)
+            .required(false)
             .value_parser(clap::value_parser!(String)))
         .arg(Arg::new("random")
             .short('r')
-            .help("random mode"))
+            .help("random mode")
+            .num_args(0..=1)
+            .required(false))
         .arg(Arg::new("difficult")
             .short('D')
-            .help("start difficult mode"))
+            .help("start difficult mode")
+            .num_args(0..=1)
+            .required(false))
         .arg(Arg::new("stats")
             .short('t')
             .help("print the state of the game"))
@@ -61,16 +67,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .short('S')
             .value_name("STATE")
             .help("make the result into a json")
-            .value_parser(clap::value_parser!(String)))
+            .value_parser(clap::value_parser!(String))
+            .required(false))
         .arg(Arg::new("config")
             .short('c')
             .value_name("CONFIG")
             .help("config file")
-            .value_parser(clap::value_parser!(String)))
+            .value_parser(clap::value_parser!(String))
+            .required(false))
         .get_matches();
         
         let mut default_config = Config{
-            random : true,
+            random : false,
             difficult : false,
             stats : false,
             day : 1,
@@ -196,7 +204,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        if default_config.random {
+        if default_config.random && _flag{
             loop{
                 let mut line = String::new();
                 if matches.contains_id("final-set"){
@@ -284,6 +292,8 @@ pub use builtin_words::select;     //Get built_in words
 fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i32>) -> (i32 , Vec<String> ,HashMap<String , i32>){                         //All judge function
     let mut default_map = HashMap::new();
     let mut gusses = Vec::new();
+    let mut _result = String::new();
+    let mut last = String::from("");
 
     for c in str.chars() {
         let count = default_map.entry(c).or_insert(0);
@@ -296,16 +306,16 @@ fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i3
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         input.pop();
-
+        
         if input.len() != str.len(){
             println!("INVALVD"); 
             continue;
         }
-        else if flag && _dmode_vavid_check(str, &input, &result){
+        else if flag && !_dmode_vavid_check(&last, &input, &_result){
             println!("INVALVD");
             continue;
         }
-        
+        last = input.clone();       
         used_word_frequency.entry(input.clone()).or_insert(0);
         if used_word_frequency.contains_key(&input){
             let count = used_word_frequency.entry(input.clone()).or_insert(0);
@@ -378,6 +388,7 @@ fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i3
             }
         }
         println!("{}", result);
+        _result = result.clone().chars().take(5).collect();
         
         let first_five = &result[0..5];
         let mut flag = false;
@@ -396,9 +407,11 @@ fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i3
 }
 
 fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
-    let str = &str[0..5];
     let mut yellow = Vec::new();
 
+    if str == ""{
+        return true;
+    }
     for ((c_default , c_input ), c_result) in str.chars().zip(input.chars()).zip(result.chars()) {
         if c_result == 'G' && c_default != c_input {
             return false;
@@ -545,7 +558,7 @@ fn is_subset<T: Eq + std::hash::Hash>(vec1: &Vec<T>, vec2: &Vec<T>) -> bool {   
 
 #[derive(Serialize, Deserialize)]
 struct Game{
-    name : String,
+    answer : String,
     gusses : Vec<String>,
 }
 #[derive(Serialize, Deserialize)]
@@ -557,9 +570,15 @@ struct State{
 use serde::{Serialize, Deserialize};
 fn state_to_json(path:String , answer:String , gusses:Vec<String>) -> Result<(), Box<dyn std::error::Error>>{
     let data = fs::read_to_string(&path)?;
-    let mut json : State = serde_json::from_str(&data)?;
+    let mut json = State{
+        total_rounds : 0,
+        games : Vec::new(),
+    };
+    if data != ""{
+        json = serde_json::from_str(&data).unwrap();
+    }
     let temp_game = Game{
-        name : answer,
+        answer : answer,
         gusses : gusses,
     };
     json.games.push(temp_game);
@@ -572,8 +591,8 @@ fn state_to_json(path:String , answer:String , gusses:Vec<String>) -> Result<(),
 }
 
 fn json_to_config(path:String) -> Result<Config, Box<dyn std::error::Error>>{
-    let data = fs::read_to_string(&path)?;
-    let json : Config = serde_json::from_str(&data)?;
+    let data = fs::read_to_string(&path).unwrap();
+    let json : Config = serde_json::from_str(&data).unwrap();
     Ok(json)
 }
 
