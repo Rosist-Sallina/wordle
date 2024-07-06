@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count_success_loop = 0;
     let mut used_word_frequency = HashMap::new();
 
-    if is_tty {
+    if !is_tty {
         let _ = tty();
     } else {
         // let mut success = 0;
@@ -322,6 +322,7 @@ fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i3
     } //Generate a map for word(to be guessed)'s color  # default
     
     let mut _i = 0;
+    let mut char_color: HashMap<char ,char> = HashMap::new();  //the best result of the word
     while _i < 6{
         let mut result = String::new();
         let mut input = String::new();
@@ -351,7 +352,6 @@ fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i3
 
         let mut map_used = HashMap::new();  //how many (char,num) char we have used
         let mut i = 0;
-        let mut char_color: HashMap<char ,char> = HashMap::new();  //the best result of the word
 
         for c in input.chars(){
             if input.chars().nth(i) == str.chars().nth(i){
