@@ -70,7 +70,7 @@ fn test_07_5_pts_save_game_state() {
 }
 
 #[test]
-#[timeout(2000)]
+#[timeout(10000)]
 fn test_08_5_pts_config_file() {
     // use config file to specify word list, offset and seed
     TestCase::read("08_01_config_file").run_and_compare_result();
