@@ -180,8 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Some(write_value) => {
                     answer = write_value.clone();
                     if !acceptable_set.contains(&answer.as_str()){
-                        println!("INVALID");
-                        return Ok(());
+                        panic!("INVALID");
                     }
                     let  (success, _gusses ,frequency) = judge(&answer , default_config.difficult.unwrap() , used_word_frequency.clone() , &acceptable_set);
                     used_word_frequency = frequency;
@@ -211,8 +210,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         io::stdin().read_line(&mut line)?;
                         line.pop();
                         if !acceptable_set.contains(&line.as_str()){
-                            println!("INVALID");
-                            return Ok(());
+                            panic!("INVALID");
                         }
                         let (success , _guess ,frequency) = judge(&line , default_config.difficult.unwrap(), used_word_frequency.clone() , &acceptable_set);
                         used_word_frequency = frequency;
@@ -269,7 +267,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let mut _flag = true;
                     let mut line = String::new();
                     io::stdin().read_line(&mut line)?;
-                    if line == "N\n" || line == "n\n"{
+                    if line == "N\n" || line == "n\n" || line == "N" || line == "n"{
                         break;
                     }
                 }
@@ -291,8 +289,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     io::stdin().read_line(&mut line)?;
                     line.pop();
                     if !acceptable_set.contains(&line.as_str()){
-                        println!("INVALID");
-                        return Ok(());
+                        panic!("INVALID");
                     }
                     let (success , _gusses ,frequency) = judge(&line , default_config.difficult.unwrap() , used_word_frequency.clone() , &acceptable_set);
                     used_word_frequency = frequency;
@@ -697,3 +694,5 @@ fn convert_keys_to_uppercase(mut map: HashMap<String, i32>) -> HashMap<String, i
     }
     new_map
 }
+
+//test:cargo run -- -c tests/cases/08_01_config_file.config.json < tests/cases/08_01_config_file.in > tests/cases/08_01_config_file.out
