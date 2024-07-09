@@ -1,5 +1,4 @@
 pub mod select{
-    
     pub const FINAL: &[&str] = &[
     "aback", "abase", "abate", "abbey", "abbot", "abhor", "abide", "abled", "abode", "abort",
     "about", "above", "abuse", "abyss", "acorn", "acrid", "actor", "acute", "adage", "adapt",
