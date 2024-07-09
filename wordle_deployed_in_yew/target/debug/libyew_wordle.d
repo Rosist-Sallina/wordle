@@ -1,0 +1,1 @@
+/rust/yew-wordle/target/debug/libyew_wordle.so: /rust/yew-wordle/src/app.rs /rust/yew-wordle/src/builtin_words.rs /rust/yew-wordle/src/judge.rs /rust/yew-wordle/src/lib.rs /rust/yew-wordle/src/resouces.rs

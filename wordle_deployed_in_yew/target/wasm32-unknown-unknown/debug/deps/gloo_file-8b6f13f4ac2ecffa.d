@@ -1,0 +1,11 @@
+/rust/yew-wordle/target/wasm32-unknown-unknown/debug/deps/libgloo_file-8b6f13f4ac2ecffa.rmeta: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/lib.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/blob.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_list.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_reader.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/object_url.rs
+
+/rust/yew-wordle/target/wasm32-unknown-unknown/debug/deps/libgloo_file-8b6f13f4ac2ecffa.rlib: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/lib.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/blob.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_list.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_reader.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/object_url.rs
+
+/rust/yew-wordle/target/wasm32-unknown-unknown/debug/deps/gloo_file-8b6f13f4ac2ecffa.d: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/lib.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/blob.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_list.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_reader.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/object_url.rs
+
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/lib.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/blob.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_list.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/file_reader.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/gloo-file-0.3.0/src/object_url.rs:

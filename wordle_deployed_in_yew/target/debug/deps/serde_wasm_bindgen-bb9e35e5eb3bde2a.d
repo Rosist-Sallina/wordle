@@ -1,0 +1,9 @@
+/rust/yew-wordle/target/debug/deps/libserde_wasm_bindgen-bb9e35e5eb3bde2a.rmeta: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/lib.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/de.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/error.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/ser.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/../README.md
+
+/rust/yew-wordle/target/debug/deps/serde_wasm_bindgen-bb9e35e5eb3bde2a.d: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/lib.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/de.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/error.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/ser.rs /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/../README.md
+
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/lib.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/de.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/error.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/ser.rs:
+/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/serde-wasm-bindgen-0.6.5/src/../README.md:
