@@ -1,12 +1,15 @@
-use console;
 use core::panic;
 use std::io::{self, BufRead, BufReader, Write};
 use std::collections::HashMap;
 use clap::{Arg, command, value_parser , ArgAction};
 use std::collections::HashSet;
+
+mod tty_mode;
+pub use tty_mode::tty_mode::tty;
+mod judge;
+pub use judge::crate_judge::judge;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);
-
     let mut count_success = 0;
     let mut count_played = 0;
     let mut answer_used = Vec::new();
@@ -28,7 +31,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .value_name("WORD")
             .help("Sets the word to guess")
             .required(false)
-            .num_args(0..=1)
             .value_parser(value_parser!(String)))
         .arg(Arg::new("random")
             .short('r')
@@ -91,7 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .required(false)
             .value_parser(value_parser!(String)))
         .get_matches();
-        
+    
         let mut default_config = Config{
             random : Some(false),
             difficult : Some(false),
@@ -316,129 +318,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod builtin_words;
 pub use builtin_words::select;     //Get built_in words
 
-fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i32> , acceptable_set : &Vec<&str>) -> (i32 , Vec<String> ,HashMap<String , i32>){                         //All judge function
-    let mut default_map = HashMap::new();
-    let mut gusses = Vec::new();
-    let mut _result = String::new();
-    let mut last = String::from("");
-
-    for c in str.chars() {
-        let count = default_map.entry(c).or_insert(0);
-        *count += 1;
-    } //Generate a map for word(to be guessed)'s color  # default
-    
-    let mut _i = 0;
-    let mut char_color: HashMap<char ,char> = HashMap::new();  //the best result of the word
-    while _i < 6{
-        let mut result = String::new();
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
-        input.pop();
-        
-        if input.len() != str.len(){
-            println!("INVALID"); 
-            continue;
-        }
-        else if flag && !_dmode_vavid_check(&last, &input, &_result){
-            println!("INVALID");
-            continue;
-        }
-        else if !acceptable_set.contains(&input.as_str()){
-            println!("INVALID");
-            continue;
-        }
-
-        last = input.clone();       
-        used_word_frequency.entry(input.clone()).or_insert(0);
-        if used_word_frequency.contains_key(&input){
-            let count = used_word_frequency.entry(input.clone()).or_insert(0);
-            *count += 1;
-        }
-        gusses.push(input.clone().to_uppercase());
-
-        let mut map_used = HashMap::new();  //how many (char,num) char we have used
-        let mut i = 0;
-
-        for c in input.chars(){
-            if input.chars().nth(i) == str.chars().nth(i){
-                let count = map_used.entry(c).or_insert(0);
-                *count += 1;
-                result.push('G');
-                char_color.insert(input.chars().nth(i).unwrap(), 'G');
-                i += 1;
-                continue;
-            }
-            else {
-                result.push(' ');
-                i += 1;
-            }
-        }
-        i = 0;
-        for c in input.chars() {
-            if result.chars().nth(i).unwrap() == 'G' {
-                i += 1;
-                continue;
-            }
-            if default_map.contains_key(&c) && default_map.get(&c) > map_used.get(&c) {    //available char still in the word
-                let count = map_used.entry(c).or_insert(0);
-                *count += 1;
-                result = fix_string_by_index(&result , i , 'Y');
-                if char_color.contains_key(&c) && *char_color.get(&c).unwrap() == 'G' {
-                    i += 1;
-                    continue;
-                }
-                else{
-                    char_color.insert(input.chars().nth(i).unwrap(), 'Y');
-                }
-                i += 1;
-                continue;
-            } 
-            else {
-                let count = map_used.entry(c).or_insert(0);
-                *count += 1;
-                result = fix_string_by_index(&result , i , 'R');
-                if char_color.contains_key(&c) && (*char_color.get(&c).unwrap() == 'G' || *char_color.get(&c).unwrap() == 'Y') {
-                    i += 1;
-                    continue;
-                }
-                else{
-                    char_color.insert(input.chars().nth(i).unwrap(), 'R');
-                }
-                i += 1;
-                continue;
-            }        
-        }
-
-        result.push(' ');
-        let alphabet = "abcdefghijklmnopqrstuvwxyz";
-
-        for c in alphabet.chars() {
-            if !char_color.contains_key(&c) {
-                result.push('X');
-            }
-            else{
-                result.push(*char_color.get(&c).unwrap());
-            }
-        }
-        println!("{}", result);
-        _result = result.clone().chars().take(5).collect();
-        
-        let first_five = &result[0..5];
-        let mut flag = false;
-        for c in first_five.chars() {
-            if c != 'G' {
-                flag = true;
-                break;
-            }
-        }
-        _i += 1;
-        if !flag{
-            return (_i , gusses , used_word_frequency);
-        }
-    }
-    return (0 , gusses , used_word_frequency);
-}
-
 fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
     let mut yellow = Vec::new();
 
@@ -461,33 +340,6 @@ fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
     }
 
     true
-}
-
-fn tty() -> Result<(), Box<dyn std::error::Error>>{
-    println!(
-        "I am in a tty. Please print {}!",
-        console::style("colorful characters").bold().blink().blue()
-    );
-    print!("{}", console::style("Your name: ").bold().red());
-    io::stdout().flush().unwrap();
-    let mut line = String::new();
-    io::stdin().read_line(&mut line)?;
-    println!("Welcome to wordle, {}!", line.trim());
-
-    let mut line = String::new();
-    print!("{}", console::style("Enter your guess: ").bold().red());
-    io::stdin().read_line(&mut line)?;
-    let used_word_frequency = HashMap::new();
-    judge(&line , false , used_word_frequency.clone() , &select::ACCEPTABLE.to_vec()); 
-
-    // example: print arguments
-    print!("Command line arguments: ");
-    for arg in std::env::args() {
-        print!("{} ", arg);
-    }
-    println!("");
-
-    Ok(())
 }
 
 fn success_judge(_flag:bool , success : i32 , answer : String){
@@ -662,7 +514,7 @@ fn json_to_config(path:String) -> Result<Config, Box<dyn std::error::Error>>{
     Ok(json)
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 struct Config{
     random : Option<bool> ,
     difficult : Option<bool> ,
