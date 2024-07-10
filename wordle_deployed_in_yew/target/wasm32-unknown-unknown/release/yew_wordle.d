@@ -1,1 +1,0 @@
-/rust/yew-wordle/target/wasm32-unknown-unknown/release/yew_wordle.wasm: /rust/yew-wordle/src/app.rs /rust/yew-wordle/src/builtin_words.rs /rust/yew-wordle/src/judge.rs /rust/yew-wordle/src/lib.rs /rust/yew-wordle/src/resouces.rs

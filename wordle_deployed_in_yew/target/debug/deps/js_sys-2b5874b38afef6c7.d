@@ -1,5 +1,0 @@
-/rust/yew-wordle/target/debug/deps/libjs_sys-2b5874b38afef6c7.rmeta: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/js-sys-0.3.69/src/lib.rs
-
-/rust/yew-wordle/target/debug/deps/js_sys-2b5874b38afef6c7.d: /root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/js-sys-0.3.69/src/lib.rs
-
-/root/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/js-sys-0.3.69/src/lib.rs:
