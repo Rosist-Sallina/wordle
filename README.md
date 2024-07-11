@@ -2,38 +2,51 @@
 
 2024 年夏季学期《程序设计训练》 Rust 课堂大作业（一）。
 
-## 作业要求
+## 项目说明
 
-具体要求请查看[作业文档](https://lab.cs.tsinghua.edu.cn/rust/projects/wordle/background/)。
+### 程序结构
 
-## Honor Code
-
-请在 `HONOR-CODE.md` 中填入你完成作业时参考的内容，包括：
-
-* 开源代码仓库（直接使用 `crate` 除外）
-* 查阅的博客、教程、问答网站的网页链接
-* 与同学进行的交流
-
-## 自动测试
-
-本作业的基础要求部分使用 Cargo 进行自动化测试，运行 `cargo test [--release] -- --test-threads=1` 即可运行测试。其中 `[--release]` 的意思是可以传 `--release` 参数也可以不传，例如 `cargo test -- --test-threads=1` 表示在 debug 模式下进行单线程测试，而 `cargo test --release -- --test-threads=1` 表示在 release 模式下进行单线程此时。
-
-如果某个测试点运行失败，将会打印 `case [name] incorrect` 的提示（可能会有额外的 `timeout` 提示，可以忽略）。你可以在 `tests/cases` 目录下查看测试用例的内容，还可以使用以下命令手工测试：
-
-```bash
-cp tests/cases/[case_name].before.json tests/data/[case_name].run.json # 复制游戏初始状态文件（如果需要）
-cargo run [--release] -- [options] < test/cases/[case_name].in > test/cases/[case_name].out # 运行程序
-diff tests/cases/[case_name].ans tests/cases/[case_name].out # 比较输出
-jq -set tests/data/[case_name].after.json tests/data/[case_name].run.json # 比较游戏状态文件（如果需要）
+```c
+src
+|—— app                                //仅包含app调用的函数
+|    |—— judge_yew.rs                  //判断函数
+|    └── resources.rs       
+|—— data
+|   └── config.json                      //配置文件
+|—— app.rs                               //Web GUI
+|—— builtin_words.rs                     //内置词库
+|—— lib.rs                               //GUI入口
+|—— judge.rs                             //判断函数
+|—— main.rs                              //normal入口
+└── tty_mode.rs                          //终端输入模式
 ```
+Crate下的各种模块（除builtin_words）为CLI独有，app下的模块为GUI独有.
 
-其中 `[options]` 是游戏使用的命令行参数，`[case_name]` 是测试用例的名称。`jq` 工具可以使用各类包管理器（如 `apt` 或 `brew`）安装。
+### 用法说明
 
-项目配置了持续集成（CI）用于帮助你测试。在推送你的改动后，可以在 GitLab 网页上查看 CI 结果和日志。
+#### CLI
+直接进行cargo run将会进入CLI交互模式。在此模式中，可以通过制定一些参数自定义游戏体验。
 
-## 其他说明
+|  参数                     | 子参数 | 作用 | 备注 |
+| -------------------------- | ------ |----------- | ----- |
+|'--random' /'-r' | | 开启随机模式，会根据day和seed作为伪参数决定答案 | 依赖于'--random' |
+|'--difficult' /'-D' | | 开启困难模式 |  |
+|'--day' /'-d' | day<int> | 指定日期 | day的范围不能太大，否则会超出预选库大小 |
+|'--seed' /'-s' | seed<int> | 指定种子 | 依赖于'--random' |
+|'--word' /'-w' | word<String> | 指定答案 | 与'--random'冲突 |
+| '--acceptable-set' / '-a' | path <String> | 指定可接受的单词集 |  |
+| '--final-set' / '-f' | path <String> | 指定随机单词选取的的单词集 |  |
+| '--state' / '-S' | path <String> | 指定状态存储路径 |  |
+| '--stats' / '-t' | | 每一局结束后展示统计信息 |  |
 
-1. `src/builtin_words` 是内嵌于程序中的单词列表，`FINAL` 为所有答案词，`ACCEPTABLE` 为所有候选词。
-2. 为了实现更多功能（如 GUI 或求解器），你可以自由地调整本项目的结构（如增加新的 binary 或者划分 crate，或者使用 Cargo workspace 组织多级项目），但需要满足以下条件，并在验收时提前告知助教：
-    * 所有的测试命令都能够按现有的方式运行；
-    * 不能对 `tests` 目录的内容进行任何修改（但可以整体移动到某个位置）。
+#### GUI
+本项目的GUI部分是基于Yew框架的Web应用，通过编译到WebAssembly的方式应用。目前本项目被部署在[这里] (https://rosist-sallina.github.io/wordle/)。
+通过键盘输入，一行输入完成后点击屏幕上的Enter键即可提交答案。对于无法提交的情况，请检查单词的合法性
+
+左上角的设置面板提供了困难模式的切换设置和种子的参数设置。
+
+左边的统计面板会输出当前胜利局数和总局数，以及使用频率最高的5个单词。
+
+#### 提高要求实现
+采用[Yew](https://yew.rs/)框架以及极少量JavaScript（主要是为了实现界面的监听效果）实现。
+并使用[Trunk](https://trunkrs.dev/)将编译完成的WebAssembly打包后，部署到Github Pages上。

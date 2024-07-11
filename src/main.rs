@@ -8,8 +8,6 @@ mod tty_mode;
 pub use tty_mode::tty_mode::tty;
 mod judge;
 pub use judge::crate_judge::judge;
-mod judge_yew;
-mod resouces;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);

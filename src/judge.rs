@@ -38,7 +38,7 @@ pub mod crate_judge{
                 println!("INVALID"); 
                 continue;
             }
-            else if flag && !crate::resouces::_dmode_vavid_check(&last, &input, &_result){
+            else if flag && !crate::_dmode_vavid_check(&last, &input, &_result){
                 println!("INVALID");
                 continue;
             }
@@ -161,7 +161,7 @@ pub mod crate_judge{
                 println!("{}", Red.paint("Error : INVALID INPUT")); 
                 continue;
             }
-            else if flag && !crate::resouces::_dmode_vavid_check(&last, &input, &_result){
+            else if flag && !crate::_dmode_vavid_check(&last, &input, &_result){
                 println!("{}", Red.paint("Error : INVALID INPUT")); 
                 continue;
             }

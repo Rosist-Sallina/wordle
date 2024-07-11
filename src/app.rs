@@ -4,7 +4,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 use crate::builtin_words::select;
-use crate::resouces::_dmode_vavid_check;
+mod resouces;
+use resouces::_dmode_vavid_check;
 use std::collections::HashMap;
 mod judge_yew;
 
@@ -130,7 +131,7 @@ impl Component for Model {
                         day = 810;
                     }
                 }
-                self.answer = crate::resouces::get_useable_word_default(day, seed);
+                self.answer = resouces::get_useable_word_default(day, seed);
             }
             Msg::UpdateDay(value) =>{
                 self.day = value.parse().unwrap();
@@ -152,7 +153,7 @@ impl Component for Model {
                         day = 810;
                     }
                 }
-                self.answer = crate::resouces::get_useable_word_default(day, seed);
+                self.answer = resouces::get_useable_word_default(day, seed);
             }
             Msg::UpdateInput(row, col, value) => {
                 let value = value.to_uppercase();  // 转换为大写
@@ -203,12 +204,12 @@ impl Component for Model {
                     self.total_success += 1;
                     self.total_round += 1;
                     self.total_success_rounds += self.rounds;
-                    self.words = crate::resouces::hash_map_sort(self.words.clone());
+                    self.words = resouces::hash_map_sort(self.words.clone());
                     self.average_round = self.total_success_rounds as f32 / self.total_success as f32;
                     self.all_completed = true;
                     self.rounds = 0;
                     self.day = (self.day.parse::<usize>().unwrap() + 1).to_string();
-                    self.answer = crate::resouces::get_useable_word_default(self.day.parse::<usize>().unwrap(), self.seed.parse::<u64>().unwrap());
+                    self.answer = resouces::get_useable_word_default(self.day.parse::<usize>().unwrap(), self.seed.parse::<u64>().unwrap());
                     self.result = String::from("");
                     self.input = String::from("");
                     self.alphabet_color= "XXXXXXXXXXXXXXXXXXXXXXXXXX".to_string();
@@ -234,7 +235,7 @@ impl Component for Model {
                     self.rounds = 0;
                     self.day = (self.day.parse::<usize>().unwrap() + 1).to_string();
                     let answer_before = self.answer.clone();
-                    self.answer = crate::resouces::get_useable_word_default(self.day.parse::<usize>().unwrap(), self.seed.parse::<u64>().unwrap());
+                    self.answer = resouces::get_useable_word_default(self.day.parse::<usize>().unwrap(), self.seed.parse::<u64>().unwrap());
                     self.result = String::from("");
                     self.input = String::from("");
                     self.alphabet_color= "XXXXXXXXXXXXXXXXXXXXXXXXXX".to_string();
@@ -311,10 +312,10 @@ impl Component for Model {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let menu_style = if self.show_menu {
             "opacity: 1; visibility: visible; transition: opacity 0.5s ease-in-out; \
-             width: 200px; border-radius: 5px; background: #f9f9f9; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"
+             width: 12.5rem; border-radius: 0.3125rem; background: #f9f9f9; box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);"
         } else {
             "opacity: 0; visibility: hidden; transition: opacity 0.5s ease-in-out; \
-             width: 200px; border-radius: 5px; background: #f9f9f9; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"
+             width: 12.5rem; border-radius: 0.3125rem; background: #f9f9f9; box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);"
         };
     
         html! {
@@ -322,34 +323,34 @@ impl Component for Model {
                 //顶部中心图片
                 <div style="position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 2000;">
                     <a href="/wordle/">
-                        <img src="https://vip.helloimg.com/i/2024/07/09/668c11135062e.png" alt="Top Center Image" style="width: 200px; height: auto;" />
-                        <span style="position: absolute; bottom: 20px; right: -75px; background-color: rgba(255, 255, 255, 0.7); padding: 2px 5px; border-radius: 3px; font-size: 14px; color: #000;">
+                        <img src="https://vip.helloimg.com/i/2024/07/09/668c11135062e.png" alt="Top Center Image" style="width: 12.5rem; height: auto;" />
+                        <span style="position: absolute; bottom: 1.25rem; right: -4.6875rem; background-color: rgba(255, 255, 255, 0.7); padding: 0.125rem 0.3125rem; border-radius: 0.1875rem; font-size: 0.875rem; color: #000;">
                             { "𝓑𝔂 𝓡𝓸𝓼𝓲𝓼𝓽" }
                         </span>
                     </a>
                 </div>
-                <hr style="position: fixed; top: 80px; left: 0; border: 0; border-top: 2px solid #ccc; width: 100%; z-index: 999;" />
+                <hr style="position: fixed; top: 5rem; left: 0; border: 0; border-top: 0.125rem solid #ccc; width: 100%; z-index: 999;" />
                 //菜单按钮和config
-                <div style="position: fixed; top: 30px; left: 20px; z-index: 2000;">
+                <div style="position: fixed; top: 1.875rem; left: 1.25rem; z-index: 2000;">
                     <button style="background: none; border: none; cursor: pointer;" onclick={ctx.link().callback(|e: MouseEvent| {
                         e.stop_propagation();
                         Msg::ToggleMenu
                     })}>
-                        <img src="https://vip.helloimg.com/i/2024/07/08/668be3bc35970.png" alt="Settings" style="width: 45px; height: 24px;" />
+                        <img src="https://vip.helloimg.com/i/2024/07/08/668be3bc35970.png" alt="Settings" style="width: 2.8125rem; height: 1.5rem;" />
                     </button>
                     <ul style={menu_style}>
-                        <li style="padding: 8px; margin-bottom: 3px;cursor: pointer;" onclick={ctx.link().callback(|e: MouseEvent| {
+                        <li style="padding: 0.5rem; margin-bottom: 0.1875rem;cursor: pointer;" onclick={ctx.link().callback(|e: MouseEvent| {
                             e.stop_propagation();
                             Msg::SelectValue("Difficult: ".into())
                         })}>{ "Difficult " }
                         <button onclick={ctx.link().callback(|e: MouseEvent| {
                             e.stop_propagation();
                             Msg::DifficultCheck
-                        })} style="margin-left: 5px; background: none; border: none; cursor: pointer; font-size: 19px; margin-top: -2px">
+                        })} style="margin-left: 0.3125rem; background: none; border: none; cursor: pointer; font-size: 1.1875rem; margin-top: -0.125rem">
                             { if self.is_difficult { "☑" } else { "☐" } }
                         </button>
                         </li>
-                        <li style="padding: 8px; cursor: pointer;">
+                        <li style="padding: 0.5rem; cursor: pointer;">
                             { "Seed: " }
                             <input
                                 type="text"
@@ -362,10 +363,10 @@ impl Component for Model {
                                     e.stop_propagation();
                                     Msg::_Clickwithnothing
                                 })}
-                                style="margin-left: 10px; padding: 4px; font-size: 16px; width: 100px;"
+                                style="margin-left: 0.625rem; padding: 0.25rem; font-size: 1rem; width: 6.25rem;"
                             />
                         </li>
-                        <li style="padding: 8px; cursor: pointer;" onclick={ctx.link().callback(|e: MouseEvent| {
+                        <li style="padding: 0.5rem; cursor: pointer;" onclick={ctx.link().callback(|e: MouseEvent| {
                             e.stop_propagation();
                             Msg::SelectValue("Day: ".into())
                         })}>{ "Day: " }<input
@@ -379,35 +380,35 @@ impl Component for Model {
                                 e.stop_propagation();
                                 Msg::_Clickwithnothing
                             })}
-                            style="margin-left: 10px; padding: 4px; font-size: 16px; width: 100px;"
+                            style="margin-left: 0.625rem; padding: 0.25rem; font-size: 1rem; width: 6.25rem;"
                         />
                     </li>
                     </ul>
                 </div>
                 //主要输入框
-                <div style="position: fixed; top: 150px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 1500;">
+                <div style="position: fixed; top: 9.375rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 0.625rem; z-index: 1500;">
                     { (0..6).map(|row| self.view_row(ctx, row)).collect::<Html>() }
                 </div>
-                <div style="position: fixed; top: 850px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 1500;">
+                <div style="position: fixed; top: 53.125rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 0.625rem; z-index: 1500;">
                     { self.view_keyboard() }
                     <div>
-                        <button style="position: relative; bottom: 133px; left: 409px; width: 136px; font-size: 28px;height: 68px; background-color: gray; color: balck; border: none; border-radius: 5px;" onclick={ctx.link().callback(|_| Msg::EnableNextRow)} disabled={self.all_submitted || self.inputs[self.current_row].iter().any(|s| s.is_empty())}>
+                        <button style="position: relative; bottom: 8.3125rem; left: 25.5625rem; width: 8.5rem; font-size: 1.75rem;height: 4.25rem; background-color: gray; color: black; border: none; border-radius: 0.3125rem;" onclick={ctx.link().callback(|_| Msg::EnableNextRow)} disabled={self.all_submitted || self.inputs[self.current_row].iter().any(|s| s.is_empty())}>
                                 { "ENTER" }
                         </button>
                     </div>
                 </div>
                 <div style="
                     position: fixed;
-                    top: 200px;
-                    left: 30px;
+                    top: 12.5rem;
+                    left: 1.875rem;
                     background: rgba(242, 237, 237, 0.8);  // 降低透明度
-                    border: 1px solid #ccc;
-                    padding: 10px;
-                    border-radius: 10px;  // 圆角效果
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1)  // 添加阴影效果
+                    border: 0.0625rem solid #ccc;
+                    padding: 0.625rem;
+                    border-radius: 0.625rem;  // 圆角效果
+                    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);  // 添加阴影效果
                     z-index: 2000;
-                    backdrop-filter: blur(5px);  // 添加模糊效果
-                    -webkit-backdrop-filter: blur(5px);  // 添加模糊效果 (兼容WebKit)">
+                    backdrop-filter: blur(0.3125rem);  // 添加模糊效果
+                    -webkit-backdrop-filter: blur(0.3125rem);  // 添加模糊效果 (兼容WebKit)">
                     <p>{ format!("Total Rounds: {}", self.total_round) }</p>
                     <p>{ format!("Total Success: {}", self.total_success) }</p>
                     <p>{ format!("Average Round: {:.2}", self.average_round) }</p>
@@ -417,26 +418,27 @@ impl Component for Model {
                         })}
                     </ul>
                 </div>
-                <hr style="position: fixed; bottom: 30px; left: 0; border: 0; border-top: 2px solid #ccc; width: 100%; z-index: 999;" />
+                <hr style="position: fixed; bottom: 1.875rem; left: 0; border: 0; border-top: 0.125rem solid #ccc; width: 100%; z-index: 999;" />
                 <div style="
                 position: fixed;
-                bottom: 10px;
+                bottom: 0.625rem;
                 left: 50%;
                 transform: translateX(-50%);
                 text-align: center;
-                font-size: 14px;
+                font-size: 0.875rem;
                 color: #333;
-                z-index: 2000;">
+                z-index: 1000;">
                 { "Powered by Rust & Yew & WebAssembly" }
             </div>
-            <div style = "position:fixed; bottom : 400px ; right : 0px ;transform: translateX(-50%); z-index: 2000; ">
+            <div style = "position:fixed; bottom : 25rem ; right : 0 ;transform: translateX(-50%); z-index: 500; ">
                 <a href="https://github.com/Rosist-Sallina">
-                        <img src="https://vip.helloimg.com/i/2024/07/11/668ec70f3019c.png" alt="zakozako" style="width: 350px; height: auto;transform:rotate(5deg);" />
+                        <img src="https://vip.helloimg.com/i/2024/07/11/668ec70f3019c.png" alt="zakozako" style="width: 21.875rem; height: auto;transform:rotate(5deg);" />
                 </a>
             </div>
             </div>
         }
     }
+    
 }
 
 impl Model {

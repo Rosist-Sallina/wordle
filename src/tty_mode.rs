@@ -1,11 +1,83 @@
 pub mod tty_mode{
     use std::{collections::HashMap, fs, io::{self, Write}};
     use ansi_term::Colour::{Green,Red,Yellow};
+    use clap::{value_parser, Arg, ArgAction, ArgMatches};
     use std::path::Path;
     use serde_json::Error as SerdeError;
     use crate::{get_useable_word_default, get_useable_word_file, read_lines_from_file, select, state_to_json, Config, State, convert_keys_to_uppercase, hash_map_sort, judge::crate_judge::judge_tty};
 
     pub fn tty() -> Result<(), Box<dyn std::error::Error>>{
+        let matches = clap::command!() // requires `cargo` feature
+        .version("0.1.0")
+        .about("a simple wordle game")
+        .arg(Arg::new("word")
+            .short('w')
+            .long("word")
+            .value_name("WORD")
+            .help("Sets the word to guess")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("random")
+            .short('r')
+            .long("random")
+            .help("random mode")
+            .required(false)
+            .action(ArgAction::SetTrue))
+        .arg(Arg::new("difficult")
+            .short('D')
+            .long("difficult")
+            .help("start difficult mode")
+            .required(false)
+            .action(ArgAction::SetTrue))
+        .arg(Arg::new("stats")
+            .short('t')
+            .long("stats")
+            .help("print the state of the game")
+            .action(ArgAction::SetTrue)
+            .required(false))
+        .arg(Arg::new("day")
+            .short('d')
+            .long("day")
+            .value_name("DAY")
+            .help("how many rounds you want to loop")
+            .required(false)
+            .value_parser(value_parser!(usize)))
+        .arg(Arg::new("seed")
+            .short('s')
+            .long("seed")
+            .value_name("SEED")
+            .help("seed for random")
+            .required(false)
+            .value_parser(value_parser!(i32)))
+        .arg(Arg::new("final-set")
+            .short('f')
+            .long("final-set")
+            .value_name("FINAL_SET")
+            .help("final set of words")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("acceptable-set")
+            .short('a')
+            .long("acceptable-set")
+            .value_name("ACCEPTABLE_SET")
+            .help("acceptable set of words")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("state")
+            .short('S')
+            .long("state")
+            .value_name("STATE")
+            .help("make the result into a json")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .arg(Arg::new("config")
+            .short('c')
+            .long("config")
+            .value_name("CONFIG")
+            .help("config file")
+            .required(false)
+            .value_parser(value_parser!(String)))
+        .get_matches();
         let default_config = Config{
             random : Some(false),
             difficult : Some(false),
@@ -59,6 +131,7 @@ pub mod tty_mode{
             }
             else if input.trim() == "--set"{
                 config = setconfig();
+                config = overwrite_config(matches.clone(), config);
             }else if input.trim() == ""{
                 let _ = game(config.clone());
                 break;
@@ -181,7 +254,7 @@ pub mod tty_mode{
         if word != "" && _flag{
             loop{
                 if !acceptable_set.contains(&word.as_str()){
-                    println!("{}" , Red.paint("Error : INVALID INPUT"));
+                    println!("{}" , Red.paint("Error : INVALID INPUT.What you input is not a word."));
                     println!("If you want to change the word, please enter it or N/n to exit.");
                     io::stdin().read_line(&mut word).unwrap();
                     word.pop();
@@ -215,12 +288,12 @@ pub mod tty_mode{
             success_judge_tty(true , success, answer.clone());
         }
         else{
-            println!("Please enter the word you want to guess.");
+            println!("Please enter the word.");
             let mut word = String::new();
             io::stdin().read_line(&mut word).unwrap();
             word.pop();
             if !acceptable_set.contains(&word.as_str()){
-                println!("{}" , Red.paint("Error : INVALID INPUT"));
+                println!("{}" , Red.paint("Error : INVALID INPUT.What you input is not a word."));
                 println!("If you want to change the word, please enter it enter N/n to exit.");
             }
             let (success , gusses , frequency) = judge_tty(&word , config.difficult.unwrap() , used_word_frequency.clone() , &acceptable_set);
@@ -491,6 +564,43 @@ pub mod tty_mode{
         // Parse the JSON
         let config: Config = serde_json::from_str(&data)?;
         Ok(config)
+    }
+
+    fn overwrite_config(matches : ArgMatches ,config: Config) -> Config{
+        let mut new_config = config.clone();
+        if let Some(seed) = matches.get_one::<i32>("seed"){
+            new_config.seed = Some(*seed);
+        }
+        if let Some(day) = matches.get_one::<usize>("day"){
+            new_config.day = Some(*day);
+        }
+        if matches.get_flag("random"){
+            new_config.random = Some(true);
+        }; 
+        if let Some(word) = matches.get_one::<String>("word"){
+            new_config.word = Some(word.clone());
+            if word.clone().len() != 5{
+                println!("{}" , Red.paint("Error : INVALID INPUT"));
+                println!("This game will be in random mode.");
+                new_config.random = Some(false);
+            }
+        }
+        if matches.get_flag("difficult"){
+            new_config.difficult = Some(true);
+        };
+        if matches.get_flag("stats"){
+            new_config.stats = Some(true);
+        };
+        if let Some(final_set) = matches.get_one::<String>("final-set"){
+            new_config.final_set = Some(final_set.clone());
+        }
+        if let Some(acceptable_set) = matches.get_one::<String>("acceptable-set"){
+            new_config.acceptable_set = Some(acceptable_set.clone());
+        }
+        if let Some(state) = matches.get_one::<String>("state"){
+            new_config.state = Some(state.clone());
+        }      
+        new_config
     }
 }
 
