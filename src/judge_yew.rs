@@ -1,4 +1,4 @@
-pub mod crate_judge{
+pub mod crate_judge_yew{
     use std::collections::HashMap;
     use crate::resouces::fix_string_by_index;
     pub fn judge(input:Vec<String> , str:&str , mut char_color: HashMap<char , char>) -> (String ,String , String , HashMap<char , char>){                         //All judge function

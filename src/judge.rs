@@ -3,7 +3,18 @@ pub mod crate_judge{
     use std::io;
     use ansi_term::Colour::{Green,Red,Yellow};
 
-    use crate::fix_string_by_index;
+    pub fn fix_string_by_index(input : &str , index : usize , c : char) -> String{
+        let mut result = String::new();
+        for i in 0..input.len(){
+            if i == index{
+                result.push(c);
+            }
+            else{
+                result.push(input.chars().nth(i).unwrap());
+            }
+        }
+        result
+    }
     pub fn judge(str : &str , flag: bool , mut used_word_frequency : HashMap<String , i32> , acceptable_set : &Vec<&str>) -> (i32 , Vec<String> ,HashMap<String , i32>){                         //All judge function
         let mut default_map = HashMap::new();
         let mut gusses = Vec::new();
@@ -27,7 +38,7 @@ pub mod crate_judge{
                 println!("INVALID"); 
                 continue;
             }
-            else if flag && !crate::_dmode_vavid_check(&last, &input, &_result){
+            else if flag && !crate::resouces::_dmode_vavid_check(&last, &input, &_result){
                 println!("INVALID");
                 continue;
             }
@@ -70,7 +81,7 @@ pub mod crate_judge{
                 if default_map.contains_key(&c) && default_map.get(&c) > map_used.get(&c) {    //available char still in the word
                     let count = map_used.entry(c).or_insert(0);
                     *count += 1;
-                    result = crate::fix_string_by_index(&result , i , 'Y');
+                    result = fix_string_by_index(&result , i , 'Y');
                     if char_color.contains_key(&c) && *char_color.get(&c).unwrap() == 'G' {
                         i += 1;
                         continue;
@@ -84,7 +95,7 @@ pub mod crate_judge{
                 else {
                     let count = map_used.entry(c).or_insert(0);
                     *count += 1;
-                    result = crate::fix_string_by_index(&result , i , 'R');
+                    result = fix_string_by_index(&result , i , 'R');
                     if char_color.contains_key(&c) && (*char_color.get(&c).unwrap() == 'G' || *char_color.get(&c).unwrap() == 'Y') {
                         i += 1;
                         continue;
@@ -150,7 +161,7 @@ pub mod crate_judge{
                 println!("{}", Red.paint("Error : INVALID INPUT")); 
                 continue;
             }
-            else if flag && !crate::_dmode_vavid_check(&last, &input, &_result){
+            else if flag && !crate::resouces::_dmode_vavid_check(&last, &input, &_result){
                 println!("{}", Red.paint("Error : INVALID INPUT")); 
                 continue;
             }
@@ -207,7 +218,7 @@ pub mod crate_judge{
                 else {
                     let count = map_used.entry(c).or_insert(0);
                     *count += 1;
-                    result = crate::fix_string_by_index(&result , i , 'R');
+                    result = fix_string_by_index(&result , i , 'R');
                     if char_color.contains_key(&c) && (*char_color.get(&c).unwrap() == 'G' || *char_color.get(&c).unwrap() == 'Y') {
                         i += 1;
                         continue;

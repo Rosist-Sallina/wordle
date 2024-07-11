@@ -4,9 +4,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 use crate::builtin_words::select;
-use crate::judge::crate_judge;
 use crate::resouces::_dmode_vavid_check;
 use std::collections::HashMap;
+mod judge_yew;
 
 pub struct Model {
     show_menu: bool,
@@ -175,7 +175,7 @@ impl Component for Model {
                 if !self.validate_row(self.current_row) {
                     return false;
                 }
-                let (result, input , alphabet_result , char_color) = crate_judge::judge(self.inputs[self.current_row].clone() , self.answer.clone().as_str() , self.char_color.clone());
+                let (result, input , alphabet_result , char_color) = judge_yew::crate_judge_yew::judge(self.inputs[self.current_row].clone() , self.answer.clone().as_str() , self.char_color.clone());
                 if self.is_difficult{
                     if !_dmode_vavid_check(self.input.as_str(), &input, &self.result){
                         return false;

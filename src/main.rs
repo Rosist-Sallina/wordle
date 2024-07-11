@@ -8,6 +8,9 @@ mod tty_mode;
 pub use tty_mode::tty_mode::tty;
 mod judge;
 pub use judge::crate_judge::judge;
+mod judge_yew;
+mod resouces;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);
     let mut count_success = 0;
@@ -318,7 +321,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod builtin_words;
 pub use builtin_words::select;     //Get built_in words
 
-fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
+pub fn _dmode_vavid_check(str : &str , input : &String , result : &String) -> bool {
     let mut yellow = Vec::new();
 
     if str == ""{
