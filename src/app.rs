@@ -191,6 +191,7 @@ impl Component for Model {
                 self.result = result.clone();
                 self.input = input.clone();
                 self.char_color = char_color.clone();
+                self.words = resouces::hash_map_sort(self.words.clone());
                 let mut all_green = true;
                 for (col, color) in result.chars().enumerate() {
                     self.colors[self.current_row][col] = match color {
