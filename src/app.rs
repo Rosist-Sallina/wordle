@@ -8,6 +8,7 @@ mod resouces;
 use resouces::_dmode_vavid_check;
 use std::collections::HashMap;
 mod judge_yew;
+use stylist::Style;
 
 pub struct Model {
     show_menu: bool,
@@ -30,6 +31,7 @@ pub struct Model {
     average_round:f32,
     words:HashMap<String , i32>,
     total_success_rounds:i32,
+    flip_flags: Vec<bool>,
 }
 
 pub enum Msg {
@@ -46,6 +48,8 @@ pub enum Msg {
     ClearRow(usize),
     FocusPrevious((usize, usize)),
     Reset,
+    TriggerFlip(usize), // 添加一个消息来触发翻转动画
+    ResetFlip(usize), // 添加一个消息来重置翻转标志
 }
 
 impl Component for Model {
@@ -88,6 +92,7 @@ impl Component for Model {
             rounds:0,
             words:HashMap::new(),
             average_round:0.0,
+            flip_flags: vec![false; 6],
         }
     }
 
@@ -259,6 +264,7 @@ impl Component for Model {
                 }
                 self.alphabet_color = alphabet_result.clone();
                 if !self.all_submitted && self.current_row < self.inputs.len() && self.inputs[self.current_row].iter().all(|s| !s.is_empty()) {
+                    ctx.link().send_message(Msg::TriggerFlip(self.current_row));
                     self.current_row += 1;
                     if self.current_row == self.inputs.len() {
                         self.all_submitted= true;
@@ -300,6 +306,22 @@ impl Component for Model {
                 self.current_row = 0;
                 self.all_completed = false;
                 self.char_color = HashMap::new();
+                self.flip_flags = vec![false; 6];
+            }
+            Msg::TriggerFlip(row) => {
+                self.flip_flags[row] = true; // 启用翻转标志
+                let link = ctx.link().clone();
+                // 使用定时器在动画结束后禁用翻转标志
+                let handle = move || {
+                    link.send_message(Msg::ResetFlip(row));
+                };
+                let _ = wasm_bindgen_futures::spawn_local(async move {
+                    gloo::timers::future::TimeoutFuture::new(600).await; // 动画时长 600ms
+                    handle();
+                });
+            }
+            Msg::ResetFlip(row) =>{
+                self.flip_flags[row] = false;
             }
         }
         true
@@ -319,7 +341,7 @@ impl Component for Model {
         };
     
         html! {
-            <div style="height: 100vh; overflow-y: scroll;">
+            <div>
                 //顶部中心图片
                 <div style="position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 2000;">
                     <a href="/wordle/">
@@ -384,9 +406,11 @@ impl Component for Model {
                         />
                     </li>
                     </ul>
-                </div>
+            </div>
                 //主要输入框
+            <div style= "margin-top: 30px; padding: 20px; overflow-y: auto;">
                 <div style="position: fixed; top: 9.375rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 0.625rem; z-index: 1500;">
+                    { self.view_styles() }
                     { (0..6).map(|row| self.view_row(ctx, row)).collect::<Html>() }
                 </div>
                 <div style="position: fixed; top: 53.125rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 0.625rem; z-index: 1500;">
@@ -435,6 +459,7 @@ impl Component for Model {
                         <img src="https://vip.helloimg.com/i/2024/07/11/668ec70f3019c.png" alt="zakozako" style="width: 21.875rem; height: auto;transform:rotate(5deg);" />
                 </a>
             </div>
+            </div>    
             </div>
         }
     }
@@ -445,8 +470,9 @@ impl Model {
     fn view_row(&self, ctx: &Context<Self>, row: usize) -> Html {
         let is_disabled = row > self.current_row || self.all_submitted;
         let is_clear_disabled = row != self.current_row || self.all_submitted;
+        let flip_class = if self.flip_flags[row] { "flip-animation" } else { "" };
         html! {
-            <div style="display: flex; gap: 5px; justify-content: center;">
+            <div style="display: flex; gap: 5px; justify-content: center;" class={ flip_class }>
                 { (0..5).map(|col| self.view_input(ctx, row, col, is_disabled)).collect::<Html>() }
                 <button style="width: 68px; height: 68px; padding: 3px; font-size: 20px; text-align: center; border: 1px solid #ccc; border-radius: 3px;"
                         onclick={ctx.link().callback(move |_| Msg::ClearRow(row))} disabled={is_clear_disabled}>
@@ -464,20 +490,24 @@ impl Model {
         } else {
             "black"
         };
+        let classname = "flip-rotate";
         html! {
-            <input
-                id={input_id}
-                type="text"
-                value={self.inputs[row][col].clone()}
-                oninput={ctx.link().callback(move |e: InputEvent| {
-                    let input: HtmlInputElement = e.target_unchecked_into();
-                    let value = input.value().to_uppercase();  // 转换为大写
-                    Msg::UpdateInput(row, col, value)
-                })}
-                disabled={is_disabled}
-                style={format!("width: 60px; height: 60px; padding: 3px; font-size: 28px; text-align: center; border: 1px solid #ccc; border-radius: 3px; background-color: {}; color: {};", color, text_color)}
-                maxlength="1"
-            />
+            <>
+                    <input
+                        id={input_id}
+                        type="text"
+                        value={self.inputs[row][col].clone()}
+                        oninput={ctx.link().callback(move |e: InputEvent| {
+                            let input: HtmlInputElement = e.target_unchecked_into();
+                            let value = input.value().to_uppercase();  // 转换为大写
+                            Msg::UpdateInput(row, col, value)
+                        })}
+                        disabled={is_disabled} 
+                        class = {classname}
+                        style={format!("width: 60px; height: 60px; padding: 3px; font-size: 28px; text-align: center; border: 1px solid #ccc; border-radius: 3px; background-color: {};color: {};", color, text_color)}
+                        maxlength="1"
+                    />
+            </>
         }
     }
     fn view_keyboard(&self) -> Html {
@@ -527,6 +557,28 @@ impl Model {
         }
         else{
             true
+        }
+    }
+    fn view_styles(&self) -> Html {
+        html! {
+            <style>
+                {"
+                    @keyframes flip {
+                        0% {
+                            transform: rotateX(0deg);
+                        }
+                        50% {
+                            transform: rotateX(90deg);
+                        }
+                        100% {
+                            transform: rotateX(180deg);
+                        }
+                    }
+                    .flip-animation {
+                        animation: flip 0.6s;
+                    }
+                "}
+            </style>
         }
     }
 }
