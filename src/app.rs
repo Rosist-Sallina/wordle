@@ -232,7 +232,7 @@ impl Component for Model {
                         ).unwrap();
                     };
                     let _ = wasm_bindgen_futures::spawn_local(async move {
-                        gloo::timers::future::TimeoutFuture::new(100).await; // 500ms 延迟
+                        gloo::timers::future::TimeoutFuture::new(260).await; // 500ms 延迟
                         handle();
                     });
                 }else if !all_green && self.current_row == 5{
@@ -258,7 +258,7 @@ impl Component for Model {
                     self.current_row = 0;
                     self.all_completed = false;
                     let _ = wasm_bindgen_futures::spawn_local(async move {
-                        gloo::timers::future::TimeoutFuture::new(100).await; // 500ms 延迟
+                        gloo::timers::future::TimeoutFuture::new(260).await; // 500ms 延迟
                         handle();
                     });
                 }
@@ -463,7 +463,6 @@ impl Component for Model {
             </div>
         }
     }
-    
 }
 
 impl Model {
@@ -568,14 +567,14 @@ impl Model {
                             transform: rotateX(0deg);
                         }
                         50% {
-                            transform: rotateX(90deg);
+                            transform: rotateX(180deg);
                         }
                         100% {
-                            transform: rotateX(180deg);
+                            transform: rotateX(360deg);
                         }
                     }
                     .flip-animation {
-                        animation: flip 0.6s;
+                        animation: flip 1.2s;
                     }
                 "}
             </style>

@@ -5,6 +5,7 @@
 - [abmfy/wordle](https://github.com/abmfy/wordle):参考了其UI布局和组织文件结构的方式
 - [yewstack/yew](https://github.com/yewstack/yew):参考和使用了yew项目的基本项目框架和部署方式
 - [Wordle](https://nyt.com/games/wordle/index.html)：参考了 UI 布局以及配色
+- [stylist-rs](https://github.com/futursolo/stylist-rs): 参考了CSS在Rust项目中的部署
 - [Reddit/How to deploy your Yew WASM project into GitHub pages using GitHub actions.](https://www.reddit.com/r/learnrust/comments/13w47uq/how_to_deploy_your_yew_wasm_project_into_github/):参考了yew项目到WASM的部署方式
 
 在开发过程中，一些同学游玩了游戏的试玩版并提出了一些富有建议性的意见：

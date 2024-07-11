@@ -136,7 +136,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(word) = matches.get_one::<String>("word"){
             default_config.word = Some(word.clone());
         }
-        
+                                           //解析Args
         let mut final_set = Vec::new();
         let mut acceptable_set = Vec::new();
         let mut temp1 = String::new();
@@ -446,7 +446,7 @@ where
     Ok(lines)
 }
 
-fn wordbox_valid_check(input : Vec<&str>) -> bool{   //check if input is valid
+fn wordbox_valid_check(input : Vec<&str>) -> bool{   //check if input is valid         
     let mut vec = Vec::new();
     for i in 0..input.len(){
         if vec.contains(&input[i]){
@@ -483,7 +483,7 @@ struct State{
 }
 
 use serde::{Serialize, Deserialize};
-fn state_to_json(path:String , answer:String , guesses:Vec<String>) -> Result<(), Box<dyn std::error::Error>>{
+fn state_to_json(path:String , answer:String , guesses:Vec<String>) -> Result<(), Box<dyn std::error::Error>>{         //状态读取json
     let data = fs::read_to_string(&path).unwrap();
     let mut json = State{
         total_rounds : Some(0),
