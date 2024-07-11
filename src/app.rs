@@ -319,7 +319,7 @@ impl Component for Model {
         };
     
         html! {
-            <div>
+            <div style="height: 100vh; overflow-y: scroll;">
                 //顶部中心图片
                 <div style="position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 2000;">
                     <a href="/wordle/">
