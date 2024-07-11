@@ -8,7 +8,6 @@ mod resouces;
 use resouces::_dmode_vavid_check;
 use std::collections::HashMap;
 mod judge_yew;
-use stylist::Style;
 
 pub struct Model {
     show_menu: bool,
@@ -239,6 +238,7 @@ impl Component for Model {
                     self.total_round += 1;
                     self.rounds = 0;
                     self.day = (self.day.parse::<usize>().unwrap() + 1).to_string();
+                    self.words = resouces::hash_map_sort(self.words.clone());
                     let answer_before = self.answer.clone();
                     self.answer = resouces::get_useable_word_default(self.day.parse::<usize>().unwrap(), self.seed.parse::<u64>().unwrap());
                     self.result = String::from("");

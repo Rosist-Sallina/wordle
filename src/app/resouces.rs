@@ -351,6 +351,7 @@ pub fn hash_map_sort(map: HashMap<String, i32>) -> HashMap<String, i32> {
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 use rand::seq::SliceRandom;
+use serde::{Deserialize, Serialize};
 use crate::builtin_words::select;
 
 pub fn get_useable_word_default(day : usize, seed : u64) -> String{                    //Get the word from the default set
@@ -373,4 +374,16 @@ pub fn fix_string_by_index(input : &str , index : usize , c : char) -> String{
         }
     }
     result
+}
+
+
+#[derive(Serialize, Deserialize , Clone)]
+pub struct Game{
+    answer : Option<String>,
+    guesses : Option<Vec<String>>,
+}
+#[derive(Serialize, Deserialize , Clone)]
+pub struct State{
+    total_rounds:Option<i32> , 
+    games : Option<Vec<Game>>,
 }
